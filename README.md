@@ -1,1 +1,1 @@
-# Luckily - Crack open something good
+# Luckily - Your pocket fortune cookie
