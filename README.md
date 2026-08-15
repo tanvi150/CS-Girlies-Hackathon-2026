@@ -1,1 +1,1 @@
-# Fortune Cookie
+# Luckily - Crack open something good
