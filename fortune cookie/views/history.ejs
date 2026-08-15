@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title || 'Fortune Jar' %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <%- include('partials/header') %>
+    
+    <div class="fortune-jar">
+      <h2>Fortune Jar</h2>
+      <p class="subtitle">All the wisdom you have collected</p>
+      
+      <% if (error) { %>
+        <div class="error-message"><%= error %></div>
+      <% } %>
+      
+      <% if (fortunes && fortunes.length > 0) { %>
+        <% fortunes.forEach((fortune, index) => { %>
+          <div class="jar-entry" data-id="<%= fortune.opening_id %>">
+            <div class="entry-content">
+              <div class="entry-text"><%= fortune.fortune %></div>
+              <div class="entry-meta">
+                <span><%= new Date(fortune.opened_at).toLocaleDateString() %></span>
+                <span>|</span>
+                <span><%= fortune.category %></span>
+                <span>|</span>
+                <span>Lucky #<%= fortune.lucky_number %></span>
+              </div>
+              <div class="entry-challenge">
+                Challenge: <%= fortune.challenge %>
+              </div>
+            </div>
+            <div class="entry-actions">
+              <button onclick="toggleFavorite(<%= fortune.opening_id %>)" class="fav-btn">☆</button>
+              <button onclick="deleteFortune(<%= fortune.opening_id %>)" class="delete-btn">✕</button>
+              <span class="entry-number">#<%= index + 1 %></span>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p style="color: var(--text-secondary); font-style: italic; text-align: center; padding: 2rem;">
+          No fortunes yet. Crack your first cookie.
+        </p>
+      <% } %>
+      
+      <button class="btn-secondary" onclick="location.href='/'" style="width: 100%; margin-top: 1rem;">
+        Get New Fortune
+      </button>
+    </div>
+  </div>
+  
+  <script>
+    function toggleFavorite(id) {
+      let favorites = JSON.parse(localStorage.getItem('fortuneFavorites') || '[]');
+      const index = favorites.findIndex(f => f.id === id);
+      
+      if (index > -1) {
+        favorites.splice(index, 1);
+      } else {
+        const entry = document.querySelector(`.jar-entry[data-id="${id}"]`);
+        if (entry) {
+          const text = entry.querySelector('.entry-text').textContent;
+          const meta = entry.querySelector('.entry-meta').textContent.split('|');
+          const challenge = entry.querySelector('.entry-challenge').textContent.replace('Challenge: ', '');
+          favorites.push({
+            id: id,
+            fortune: text,
+            category: meta[1]?.trim() || 'general',
+            luckyNumber: meta[2]?.replace('Lucky #', '').trim() || '',
+            challenge: challenge || '',
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+      
+      localStorage.setItem('fortuneFavorites', JSON.stringify(favorites));
+      
+      const btn = event.target;
+      if (index > -1) {
+        btn.textContent = '☆';
+      } else {
+        btn.textContent = '★';
+      }
+    }
+    
+    function deleteFortune(id) {
+      if (!confirm('Delete this fortune?')) return;
+      
+      let jar = JSON.parse(localStorage.getItem('fortuneJar') || '[]');
+      jar = jar.filter(f => f.id !== id);
+      localStorage.setItem('fortuneJar', JSON.stringify(jar));
+      
+      let favorites = JSON.parse(localStorage.getItem('fortuneFavorites') || '[]');
+      favorites = favorites.filter(f => f.id !== id);
+      localStorage.setItem('fortuneFavorites', JSON.stringify(favorites));
+      
+      location.reload();
+    }
+  </script>
+</body>
+</html>

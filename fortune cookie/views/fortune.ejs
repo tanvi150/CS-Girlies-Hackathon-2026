@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title || 'Your Fortune' %></title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <%- include('partials/header') %>
+    
+    <div class="fortune-card">
+      <div class="fortune-result">
+        <div class="fortune-text"><%= fortune %></div>
+        
+        <div class="fortune-details">
+          <div class="detail-item">
+            <div class="label">Lucky Number</div>
+            <div class="value"><%= luckyNumber %></div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Mood</div>
+            <div class="value mood-value"><%= mood %></div>
+          </div>
+          <div class="detail-item">
+            <div class="label">Category</div>
+            <div class="value mood-value"><%= category %></div>
+          </div>
+        </div>
+        
+        <div class="challenge-box">
+          <div class="label">Today's Tiny Challenge</div>
+          <div class="challenge-text"><%= challenge %></div>
+        </div>
+        
+        <div class="action-buttons">
+          <button class="btn-secondary" onclick="location.href='/'">New Fortune</button>
+          <button class="btn-secondary" id="saveBtn">Save to Jar</button>
+          <button class="btn-secondary" id="favoriteBtn">Favorite</button>
+          <button class="btn-secondary" onclick="shareFortune()">Share</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    const fortuneData = {
+      id: Date.now(),
+      fortune: '<%= fortune %>',
+      luckyNumber: <%= luckyNumber %>,
+      challenge: '<%= challenge %>',
+      mood: '<%= mood %>',
+      category: '<%= category %>',
+      timestamp: new Date().toISOString()
+    };
+    
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      saveToJar(fortuneData);
+      document.getElementById('saveBtn').textContent = 'Saved!';
+      document.getElementById('saveBtn').disabled = true;
+      setTimeout(() => {
+        document.getElementById('saveBtn').textContent = 'Save to Jar';
+        document.getElementById('saveBtn').disabled = false;
+      }, 2000);
+    });
+    
+    document.getElementById('favoriteBtn').addEventListener('click', function() {
+      let favorites = JSON.parse(localStorage.getItem('fortuneFavorites') || '[]');
+      const index = favorites.findIndex(f => f.id === fortuneData.id);
+      
+      if (index > -1) {
+        favorites.splice(index, 1);
+        this.textContent = 'Favorite';
+        this.classList.remove('favorite');
+      } else {
+        favorites.push(fortuneData);
+        this.textContent = 'Favorited';
+        this.classList.add('favorite');
+      }
+      
+      localStorage.setItem('fortuneFavorites', JSON.stringify(favorites));
+    });
+    
+    function saveToJar(data) {
+      let jar = JSON.parse(localStorage.getItem('fortuneJar') || '[]');
+      if (!jar.some(f => f.id === data.id)) {
+        jar.unshift(data);
+        localStorage.setItem('fortuneJar', JSON.stringify(jar));
+      }
+    }
+    
+    function shareFortune() {
+      const text = `My Fortune Cookie:\n\n"${fortuneData.fortune}"\n\nLucky Number: ${fortuneData.luckyNumber}\nChallenge: ${fortuneData.challenge}`;
+      
+      if (navigator.share) {
+        navigator.share({ title: 'My Fortune Cookie', text: text }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(text).then(() => {
+          alert('Fortune copied to clipboard.');
+        }).catch(() => {
+          prompt('Copy your fortune:', text);
+        });
+      }
+    }
+  </script>
+</body>
+</html>
