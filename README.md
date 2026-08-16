@@ -80,8 +80,6 @@ Create a `.env` file:
 
 ```env
 OPENROUTER_API_KEY=your_api_key_here
-OPENROUTER_MODEL=openai/gpt-oss-20b:free
-PORT=3000
 ```
 
 Initialize the database:
