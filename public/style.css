@@ -41,6 +41,7 @@ body {
   margin: 0 auto;
 }
 
+/* Header with mascot */
 .header {
   text-align: center;
   margin-bottom: 2rem;
@@ -48,23 +49,53 @@ body {
   border-bottom: 1px solid var(--border-color);
 }
 
-.header h1 {
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Mascot image styling */
+.mascot-image {
+  width: 118px;
+  height: 118px;
+  object-fit: contain;
+  background: transparent;
+  padding: 0 ;
+  border: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  flex-shrink: 0;
+}
+
+.mascot-image:hover {
+  transform: scale(1.05) rotate(-5deg);
+  box-shadow: 0 0 50px var(--accent-gold-glow);
+}
+
+.header-text {
+  text-align: left;
+}
+
+.header-text h1 {
   font-size: 2.8rem;
   color: var(--accent-gold);
   text-shadow: 0 0 60px var(--accent-gold-glow);
   letter-spacing: 2px;
   font-weight: normal;
+  margin: 0;
 }
 
-.header h1 .icon {
+.header-text h1 .icon {
   display: inline-block;
-  font-size: 2.5rem;
-  margin-right: 0.5rem;
+  font-size: 2rem;
+  margin-right: 0.3rem;
 }
 
-.header p {
+.header-text p {
   color: var(--text-secondary);
-  margin-top: 0.5rem;
+  margin-top: 0.2rem;
   font-size: 1.1rem;
   font-style: italic;
 }
@@ -817,8 +848,14 @@ body {
   color: var(--accent-gold);
 }
 
+
+
 @media (max-width: 480px) {
   .header h1 { font-size: 2rem; }
+  .header-content { gap: 1rem; }
+  .mascot-image { width: 55px; height: 55px; padding: 5px; }
+  .header-text h1 { font-size: 2rem; }
+  .header-text p { font-size: 0.9rem; }
   .fortune-card, .fortune-jar, .daily-fortune { padding: 1.25rem; }
   .btn-group { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
   .btn-option { font-size: 0.75rem; padding: 0.5rem 0.3rem; min-height: 40px; }
@@ -836,6 +873,9 @@ body {
 }
 
 @media (max-width: 380px) {
+  .header-content { flex-direction: column; gap: 0.5rem; }
+  .header-text { text-align: center; }
+  .mascot-image { width: 50px; height: 50px; }
   .btn-group { grid-template-columns: repeat(2, 1fr); }
   .cookie-container { width: 150px; height: 138px; }
 }

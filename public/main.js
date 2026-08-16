@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   addCharCounter(moodInput, 200);
   
-  // Check if input has text
   function checkInputs() {
     const mood = moodInput.value.trim();
     crackBtn.disabled = !mood;
@@ -60,24 +59,21 @@ document.addEventListener('DOMContentLoaded', () => {
   
   moodInput.addEventListener('input', checkInputs);
   
-  // Enter key support
   moodInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && moodInput.value.trim()) {
       crackBtn.click();
     }
   });
   
-  // Suggestion chips
   document.querySelectorAll('.suggestion-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       moodInput.value = chip.dataset.value;
       checkInputs();
-      // Auto-focus on input after selection
       moodInput.focus();
     });
   });
   
-  // Crack the cookie
+  // FIXED: Start animation immediately, don't wait for API
   crackBtn.addEventListener('click', async () => {
     if (isSubmitting) return;
     
@@ -89,17 +85,28 @@ document.addEventListener('DOMContentLoaded', () => {
     crackBtn.classList.add('loading');
     crackBtn.textContent = 'Cracking...';
     
+    // Show cookie container immediately
     cookieContainer.style.display = 'block';
     resultDiv.style.display = 'none';
     fortunePaper.classList.remove('revealed');
     
+    // Reset cookie state
     cookieWrapper.classList.remove('cracked');
     crackOverlay.classList.remove('active');
     crackOverlay.innerHTML = '';
     
+    // START ANIMATION IMMEDIATELY - don't wait for API
     const cookie3D = document.getElementById('cookie3D');
     cookie3D.classList.add('shake');
     
+    // Start the crack animation right away
+    setTimeout(() => {
+      cookie3D.classList.remove('shake');
+      // Start cracking immediately with placeholder data
+      startCrackAnimation();
+    }, 400);
+    
+    // Fetch fortune in the background
     try {
       const response = await fetch('/api/fortune', {
         method: 'POST',
@@ -111,43 +118,54 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       currentFortune = data;
       
-      setTimeout(() => {
-        cookie3D.classList.remove('shake');
-        crackCookie(data);
-      }, 700);
+      // Update the paper with real data when it arrives
+      updateFortunePaper(data);
       
     } catch (error) {
       console.error('Error:', error);
       const data = generateLocalFortune(mood);
       currentFortune = data;
-      setTimeout(() => {
-        cookie3D.classList.remove('shake');
-        crackCookie(data);
-      }, 700);
+      updateFortunePaper(data);
     }
   });
   
-  function crackCookie(data) {
+  // Start crack animation immediately
+  function startCrackAnimation() {
+    // Create crack lines
     createCrackLines();
     crackOverlay.classList.add('active');
     
+    // Split the cookie
     setTimeout(() => {
       cookieWrapper.classList.add('cracked');
-    }, 300);
+      const container = document.querySelector('.cookie-container');
+      if (container) {
+        container.classList.add('split-effect');
+      }
+    }, 200);
     
+    // Create particles
     createParticles();
     
+    // Show paper with loading state first
     setTimeout(() => {
-      paperText.textContent = data.fortune;
-      paperNumber.textContent = 'Lucky Number: ' + data.luckyNumber;
-      paperChallenge.textContent = 'Challenge: ' + data.challenge;
+      paperText.textContent = '✨ Your fortune is coming...';
+      paperNumber.textContent = 'Loading...';
+      paperChallenge.textContent = 'Please wait...';
       fortunePaper.classList.add('revealed');
-      
-      setTimeout(() => {
-        displayFortune(data);
-      }, 800);
-      
-    }, 800);
+    }, 400);
+  }
+  
+  // Update paper with real fortune data
+  function updateFortunePaper(data) {
+    paperText.textContent = data.fortune;
+    paperNumber.textContent = 'Lucky Number: ' + data.luckyNumber;
+    paperChallenge.textContent = 'Challenge: ' + data.challenge;
+    
+    // Show full result
+    setTimeout(() => {
+      displayFortune(data);
+    }, 300);
     
     isSubmitting = false;
     crackBtn.classList.remove('loading');
@@ -159,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const overlay = crackOverlay;
     overlay.innerHTML = '';
     
-    const numLines = 10;
+    const numLines = 8;
     
     for (let i = 0; i < numLines; i++) {
       const line = document.createElement('div');
@@ -168,8 +186,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const x = 30 + Math.random() * 180;
       const y = 30 + Math.random() * 140;
       const angle = Math.random() * 360;
-      const length = 15 + Math.random() * 35;
-      const thickness = 1 + Math.random() * 2;
+      const length = 20 + Math.random() * 40;
+      const thickness = 2 + Math.random() * 2;
       
       line.style.cssText = `
         position: absolute;
@@ -177,11 +195,13 @@ document.addEventListener('DOMContentLoaded', () => {
         top: ${y}px;
         width: ${length}px;
         height: ${thickness}px;
-        background: rgba(101, 67, 33, ${0.4 + Math.random() * 0.4});
+        background: rgba(80, 50, 20, 0.8);
         transform: rotate(${angle}deg);
         transform-origin: center;
-        border-radius: 1px;
-        opacity: ${0.6 + Math.random() * 0.4};
+        border-radius: 2px;
+        opacity: 0.9;
+        box-shadow: 0 0 8px rgba(80, 50, 20, 0.2);
+        z-index: 10;
       `;
       
       overlay.appendChild(line);
@@ -190,18 +210,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const branch = document.createElement('div');
         branch.className = 'crack-line';
         const branchAngle = angle + (Math.random() - 0.5) * 60;
-        const branchLength = 8 + Math.random() * 15;
+        const branchLength = 10 + Math.random() * 20;
         branch.style.cssText = `
           position: absolute;
-          left: ${x + Math.cos(angle * Math.PI / 180) * length * 0.6}px;
-          top: ${y + Math.sin(angle * Math.PI / 180) * length * 0.6}px;
+          left: ${x + Math.cos(angle * Math.PI / 180) * length * 0.5}px;
+          top: ${y + Math.sin(angle * Math.PI / 180) * length * 0.5}px;
           width: ${branchLength}px;
-          height: ${thickness * 0.7}px;
-          background: rgba(101, 67, 33, ${0.3 + Math.random() * 0.3});
+          height: ${thickness * 0.6}px;
+          background: rgba(80, 50, 20, 0.6);
           transform: rotate(${branchAngle}deg);
           transform-origin: center;
-          border-radius: 1px;
-          opacity: ${0.4 + Math.random() * 0.3};
+          border-radius: 2px;
+          opacity: 0.7;
+          z-index: 10;
         `;
         overlay.appendChild(branch);
       }
@@ -217,36 +238,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const cx = cookieRect.left + cookieRect.width / 2;
     const cy = cookieRect.top + cookieRect.height / 2;
     
-    const colors = ['#d4a857', '#c49a6c', '#f5d6a8', '#b8943f', '#e8c97a', '#8b5a2b'];
+    const colors = ['#d4a857', '#c49a6c', '#f5d6a8', '#b8943f', '#e8c97a'];
     
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 30; i++) {
       const particle = document.createElement('div');
       particle.className = 'particle';
-      const size = 3 + Math.random() * 8;
+      const size = 3 + Math.random() * 6;
       const angle = Math.random() * Math.PI * 2;
-      const distance = 80 + Math.random() * 200;
+      const distance = 60 + Math.random() * 150;
       const tx = Math.cos(angle) * distance;
       const ty = Math.sin(angle) * distance - 30;
-      
-      const isCrumb = Math.random() > 0.5;
       
       particle.style.cssText = `
         left: ${cx + (Math.random() - 0.5) * 30}px;
         top: ${cy + (Math.random() - 0.5) * 30}px;
         width: ${size}px;
-        height: ${isCrumb ? size * 0.6 : size}px;
+        height: ${size * 0.6}px;
         background: ${colors[Math.floor(Math.random() * colors.length)]};
-        border-radius: ${isCrumb ? '2px' : '50%'};
+        border-radius: 2px;
         --tx: ${tx}px;
         --ty: ${ty}px;
-        animation-duration: ${0.8 + Math.random() * 0.8}s;
+        animation-duration: 0.6s;
         box-shadow: 0 0 4px rgba(139, 90, 43, 0.2);
         transform: rotate(${Math.random() * 360}deg);
+        z-index: 1000;
       `;
       container.appendChild(particle);
     }
     
-    setTimeout(() => container.remove(), 2000);
+    setTimeout(() => container.remove(), 800);
   }
   
   function displayFortune(data) {
@@ -354,13 +374,42 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   function saveToJar(data) {
+    if (!data) {
+      console.error('No data provided to save');
+      return false;
+    }
+    
     let jar = JSON.parse(localStorage.getItem('fortuneJar') || '[]');
-    const id = data.cookieId || data.id;
-    if (!jar.some(f => (f.cookieId === id || f.id === id))) {
-      jar.unshift(data);
+    const id = data.cookieId || data.id || Date.now();
+    
+    const exists = jar.some(f => {
+      return (f.cookieId === id || f.id === id || f.fortune === data.fortune);
+    });
+    
+    if (!exists) {
+      const fortuneToSave = {
+        fortune: data.fortune || '',
+        luckyNumber: data.luckyNumber || 42,
+        challenge: data.challenge || '',
+        mood: data.mood || 'Hopeful',
+        category: data.category || 'General',
+        timestamp: data.timestamp || new Date().toISOString(),
+        cookieId: data.cookieId || id,
+        id: id,
+        _source: data._source || 'manual'
+      };
+      
+      if (!fortuneToSave.fortune || fortuneToSave.fortune === '') {
+        console.error('Cannot save fortune with empty text');
+        return false;
+      }
+      
+      jar.unshift(fortuneToSave);
       localStorage.setItem('fortuneJar', JSON.stringify(jar));
       loadFortuneJar();
+      return true;
     }
+    return false;
   }
   
   function loadFortuneJar() {
@@ -477,10 +526,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedDaily = localStorage.getItem('dailyFortune');
     
     if (savedDaily) {
-      const data = JSON.parse(savedDaily);
-      if (data.date === today) {
-        displayDailyFortune(data.fortune);
-        return;
+      try {
+        const data = JSON.parse(savedDaily);
+        if (data.date === today && data.fortune) {
+          displayDailyFortune(data.fortune);
+          return;
+        }
+      } catch (e) {
+        console.error('Error parsing daily fortune:', e);
       }
     }
     
@@ -509,7 +562,11 @@ document.addEventListener('DOMContentLoaded', () => {
           const fortune = {
             fortune: "Today is a gift. Unwrap it with curiosity and wonder.",
             luckyNumber: 42,
-            challenge: "Do something that makes you smile today."
+            challenge: "Do something that makes you smile today.",
+            mood: "Hopeful",
+            category: "General",
+            timestamp: new Date().toISOString(),
+            id: Date.now()
           };
           localStorage.setItem('dailyFortune', JSON.stringify({ date: today, fortune }));
           displayDailyFortune(fortune);
@@ -520,6 +577,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
   function displayDailyFortune(fortune) {
     if (!dailyContent) return;
+    
+    window.dailyFortuneData = fortune;
+    
     dailyContent.innerHTML = `
       <div class="daily-date">${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
       <div class="fortune-text">${fortune.fortune}</div>
@@ -533,10 +593,62 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="value" style="font-size: 0.9rem;">${fortune.challenge}</div>
         </div>
       </div>
-      <button class="btn-secondary" style="margin-top: 1rem; width: 100%;" onclick="saveToJar(dailyFortune)">
+      <button class="btn-secondary" id="dailySaveBtn" style="margin-top: 1rem; width: 100%;">
         Save to Jar
       </button>
     `;
-    window.dailyFortune = fortune;
+    
+    const dailySaveBtn = document.getElementById('dailySaveBtn');
+    if (dailySaveBtn) {
+      const newBtn = dailySaveBtn.cloneNode(true);
+      dailySaveBtn.parentNode.replaceChild(newBtn, dailySaveBtn);
+      
+      newBtn.addEventListener('click', function() {
+        const dataToSave = window.dailyFortuneData || fortune;
+        
+        if (!dataToSave || !dataToSave.fortune) {
+          alert('No fortune to save. Please get a fortune first.');
+          return;
+        }
+        
+        const fortuneToSave = {
+          fortune: dataToSave.fortune,
+          luckyNumber: dataToSave.luckyNumber || 42,
+          challenge: dataToSave.challenge || '',
+          mood: dataToSave.mood || 'Hopeful',
+          category: dataToSave.category || 'General',
+          timestamp: dataToSave.timestamp || new Date().toISOString(),
+          id: dataToSave.id || Date.now(),
+          cookieId: dataToSave.cookieId || dataToSave.id || Date.now(),
+          _source: 'daily'
+        };
+        
+        const saved = saveToJar(fortuneToSave);
+        
+        if (saved) {
+          this.textContent = 'Saved to Jar!';
+          this.disabled = true;
+          this.style.opacity = '0.6';
+          this.style.cursor = 'default';
+          setTimeout(() => {
+            this.textContent = 'Save to Jar';
+            this.disabled = false;
+            this.style.opacity = '1';
+            this.style.cursor = 'pointer';
+          }, 2000);
+        } else {
+          this.textContent = 'Already in Jar!';
+          this.disabled = true;
+          this.style.opacity = '0.6';
+          this.style.cursor = 'default';
+          setTimeout(() => {
+            this.textContent = 'Save to Jar';
+            this.disabled = false;
+            this.style.opacity = '1';
+            this.style.cursor = 'pointer';
+          }, 1500);
+        }
+      });
+    }
   }
 });
