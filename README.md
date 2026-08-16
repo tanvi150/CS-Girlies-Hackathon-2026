@@ -122,9 +122,9 @@ fortune-cookie/
     └── main.js
 ```
 
-## 🏆 Happiness Hackathon
+## 🏆 CS Girlies Hackathon
 
-Luckily was created for the **Happiness Hackathon** with one simple idea:
+Luckily was created for the **CS Girlies Hackathon's Happiness Track** with one simple idea:
 
 > **Technology doesn't always have to solve a huge problem. Sometimes it can simply make someone feel a little better.** 🍪✨
 
