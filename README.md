@@ -130,6 +130,6 @@ Luckily was created for the **CS Girlies Hackathon's Happiness Track** with one 
 
 ## Our Devpost
 
-Check out our project on Devpost:
+Check out our project on Devpost: https://devpost.com/software/luckily-1vx3qj
 
 Made with ❤️, by Team JAT
